@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F4F7FB">
+<title>ตารางประจำวัน · คะแนนประจำสัปดาห์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F7FB;--ink:#14213D;--muted:#4A5568;--card:#FFFFFF;--line:#DCE3EE;--accent:#1F49C7;--danger:#B42318;--good:#14633B;--warn:#7A4300}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans Thai',system-ui,sans-serif;line-height:1.5;-webkit-text-size-adjust:100%}
+button{font-family:inherit}
+.wrap{max-width:560px;margin:0 auto;padding:24px 16px 56px;display:flex;flex-direction:column;gap:18px}
+h1{margin:0;font-size:28px;line-height:1.3;font-weight:700}
+.sub{margin:0;font-size:15px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.testbanner{background:#FFF0D1;color:var(--warn);border-radius:12px;padding:8px 12px;font-size:14px;font-weight:600}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--line);border-radius:14px;padding:4px}
+.seg button{min-height:48px;border:0;border-radius:11px;background:transparent;color:var(--ink);font-size:16px;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--accent);box-shadow:0 1px 2px rgba(20,33,61,.18)}
+.score{display:flex;flex-direction:column;gap:12px;padding:18px 16px}
+.scoreTop{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.big{font-size:56px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.of{font-size:20px;color:var(--muted);font-weight:600;margin-left:4px}
+.chip{font-size:14px;font-weight:600;border-radius:999px;padding:4px 12px;white-space:nowrap}
+.chip.run{background:#E3F4EA;color:var(--good)}
+.chip.end{background:var(--ink);color:#fff}
+.chip.wait{background:#E3EDFF;color:var(--accent)}
+.bar{height:12px;background:var(--line);border-radius:999px;overflow:hidden}
+#barFill{height:100%;border-radius:999px;transition:width .3s}
+.muted{color:var(--muted);font-size:14px;margin:0}
+.sum{display:flex;flex-direction:column;gap:8px}
+.sum h2{margin:0;font-size:16px;font-weight:700}
+.sumrow{display:flex;justify-content:space-between;gap:12px;font-size:15px;align-items:baseline}
+.sumrow span:first-child{color:var(--muted)}
+.sumrow strong{text-align:right;font-weight:600}
+.sumrow strong.bad{color:var(--danger)}
+.sumrow strong.ok{color:var(--good)}
+.tabs{display:grid;gap:6px}
+.tab{min-height:56px;border:1px solid var(--line);background:#fff;border-radius:14px;color:var(--ink);font-size:16px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:4px 0}
+.tab small{font-size:12px;font-weight:600;color:var(--muted)}
+.tab small.loss{color:var(--danger)}
+.tab small.today{color:var(--accent)}
+.tab[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab[aria-pressed="true"] small{color:#fff}
+.dayTitle{margin:0;font-size:18px;font-weight:700}
+.modebox{display:flex;flex-direction:column;gap:10px}
+.modeTxt{margin:0;font-size:14px;color:var(--muted)}
+.modeBtns{display:flex;flex-wrap:wrap;gap:8px}
+.btn2:disabled{opacity:.5;cursor:not-allowed}
+#list{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:12px;align-items:stretch}
+.tcol{width:56px;flex:none;padding-top:14px;display:flex;flex-direction:column;gap:2px;align-items:flex-end;text-align:right}
+.t1{font-size:16px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums}
+.t2{font-size:13px;color:var(--muted);line-height:1.3;font-variant-numeric:tabular-nums}
+.item{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center}
+.ic{width:40px;height:40px;flex:none;border-radius:999px;display:flex;align-items:center;justify-content:center}
+.ic svg{width:22px;height:22px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ic.blue{background:#E3EDFF}.ic.blue svg{stroke:#1F49C7}
+.ic.amber{background:#FFF0D1}.ic.amber svg{stroke:#7A4300}
+.ic.green{background:#E3F4EA}.ic.green svg{stroke:#14633B}
+.ic.purple{background:#EBE5FF}.ic.purple svg{stroke:#4B2FB0}
+.ic.night{background:#2A3A63}.ic.night svg{stroke:#fff}
+.txt{flex:1 1 140px;min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.name{font-size:17px;font-weight:600;line-height:1.4}
+.subtxt{font-size:14px;color:var(--muted)}
+.tag{font-size:13px;font-weight:600;border-radius:999px;padding:2px 10px}
+.tag.free{background:#E3F4EA;color:var(--good)}
+.tag.opt{background:#FFF0D1;color:var(--warn)}
+.act{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.deduct{min-height:44px;padding:0 18px;border:0;border-radius:12px;background:var(--danger);color:#fff;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.deduct small{font-size:14px;font-weight:600}
+.undo{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid #98A2B3;background:#fff;color:var(--ink);font-size:15px;font-weight:600;cursor:pointer}
+.took{background:#FEE4E2;color:#912018;font-weight:600;font-size:14px;border-radius:999px;padding:6px 12px}
+.lock{color:var(--muted);font-size:14px}
+.item.done{background:#FFF5F4;border-color:#FDA29B}
+.item.night{background:var(--ink);border-color:var(--ink);color:#fff}
+.item.night .subtxt,.item.night .lock{color:#C9D3E8}
+.item.night .deduct{background:#fff;color:#912018}
+.item.night .undo{background:transparent;color:#fff;border-color:#C9D3E8}
+.item.night.done{background:var(--ink);border-color:#FDA29B}
+.trip{display:flex;gap:12px;align-items:center}
+button:focus-visible,summary:focus-visible,input:focus-visible,label:focus-within{outline:3px solid #1F49C7;outline-offset:2px}
+@media (max-width:480px){.act{flex:1 1 100%;margin-left:0;justify-content:stretch}.act .deduct{flex:1}.act .undo{flex:none}}
+details.card summary{cursor:pointer;font-weight:600;font-size:16px;min-height:32px}
+details.card[open] summary{margin-bottom:10px}
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.hist li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.hist li:last-child{border-bottom:0;padding-bottom:0}
+.hist .r{text-align:right}
+.hist .r small{display:block;color:var(--muted);font-size:13px}
+.bk{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn2{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid #98A2B3;background:#fff;color:var(--ink);font-size:15px;font-weight:600;cursor:pointer}
+.bk label.btn2{display:inline-flex;align-items:center}
+.bk input[type=file]{position:absolute;opacity:0;width:1px;height:1px}
+</style>
+</head>
+<body>
+<noscript>ต้องเปิด JavaScript เพื่อใช้แอปนี้</noscript>
+<div class="wrap">
+  <div id="testBanner" class="testbanner" hidden>โหมดทดสอบเวลา · ข้อมูลไม่ถูกบันทึก</div>
+  <header>
+    <h1>ตารางประจำวัน</h1>
+    <p class="sub">ตารางและคะแนนประจำสัปดาห์</p>
+  </header>
+
+  <div class="seg" role="group" aria-label="เลือกตาราง">
+    <button type="button" id="segSchool" data-act="panel" data-panel="school">วันไปเรียน</button>
+    <button type="button" id="segHoliday" data-act="panel" data-panel="holiday">วันหยุด</button>
+  </div>
+
+  <section class="card score" aria-live="polite">
+    <div class="scoreTop">
+      <div><span id="scoreNum" class="big">100</span><span id="scoreOf" class="of">/100</span></div>
+      <span id="statusChip" class="chip run">กำลังนับคะแนน</span>
+    </div>
+    <div class="bar" role="presentation"><div id="barFill"></div></div>
+    <p id="countdown" class="muted"></p>
+  </section>
+
+  <section id="summary" class="card sum"></section>
+
+  <nav id="tabs" class="tabs" aria-label="เลือกวัน"></nav>
+  <h2 id="dayTitle" class="dayTitle"></h2>
+  <section id="modeBox" class="card modebox"></section>
+  <main id="list"></main>
+
+  <details class="card">
+    <summary>ประวัติสัปดาห์ก่อนๆ</summary>
+    <ul id="hist" class="hist"></ul>
+  </details>
+
+  <details class="card">
+    <summary>สำรอง / กู้คืนข้อมูล</summary>
+    <p class="muted" style="margin-bottom:10px">ข้อมูลเก็บอยู่ในเบราว์เซอร์เครื่องนี้ ถ้าล้างข้อมูลเบราว์เซอร์จะหาย แนะนำให้สำรองเป็นครั้งคราว</p>
+    <div class="bk">
+      <button type="button" class="btn2" id="btnExport">สำรองข้อมูล</button>
+      <label class="btn2" for="fileImport">กู้คืนข้อมูล</label>
+      <input type="file" id="fileImport" accept="application/json,.json">
+    </div>
+  </details>
+</div>
+
+<script>
+/*LOGIC_START*/
+var TZ = 7 * 3600000, DAY = 86400000;
+var PENALTY_BASE = 61;       // นาที (1 ชม. 1 นาที) เมื่อคะแนนวันไปเรียนต่ำกว่า 100
+var GAME_PER_DAY = 180;      // นาที ต่อวันหยุด (เสาร์ + อาทิตย์)
+var NO_GAME_AT = 20;         // คะแนนวันไปเรียน <= นี้ ไม่มีเวลาเล่นเกมวันหยุด
+var SCHOOL_GAME = 60;        // นาที เกมวันไปเรียนต่อวัน (ช่อง 19:00-20:00)
+var HOL_TOTAL = 50;          // คะแนนวันหยุด (1 คะแนนที่หาย = ตัดเกมวันไปเรียนวันละ 1 นาที)
+var PTS = { trash: 10, shower: 15, meal: 15, ice: 10, sleep: 15 };
+var HPTS = { h_pack: 20, h_vocab: 10, h_trash: 10, h_lunch: 10, h_shower: 10, h_dinner: 10, h_ice: 10, h_review: 10, h_sleep: 10 };
+
+function bkk(t) { return new Date(t + TZ); }
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function dateKey(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+function weekKeyAt(t) {
+  var d = bkk(t);
+  var diff = (d.getUTCDay() + 6) % 7; // จันทร์ = 0
+  return dateKey(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - diff)));
+}
+function weekStart(key) { return Date.parse(key + 'T00:00:00+07:00'); }
+function scoringEnd(key) { return weekStart(key) + 4 * DAY + 22 * 3600000; } // ศุกร์ 22:00 (คะแนนวันไปเรียนจบ)
+function nextReset(key) { return weekStart(key) + 7 * DAY; }                 // จันทร์ 00:00 (รีเซ็ต/คะแนนวันหยุดจบ)
+function dayIndexAt(t, key) { return Math.floor((t - weekStart(key)) / DAY); }
+
+// โหมดของแต่ละวัน: ปกติ = จันทร์-ศุกร์ 'school', เสาร์-อาทิตย์ 'holiday'; override ได้เป็น 'holiday' | 'trip'
+function modeOf(modes, d) {
+  var m = modes && modes[d];
+  return m || (d < 5 ? 'school' : 'holiday');
+}
+function sumMarks(m, map) {
+  var s = 0;
+  if (!m) return 0;
+  for (var k in m) { if (m[k] && map[k]) s += map[k]; }
+  return s;
+}
+function calcScore(marks, modes) {
+  var lost = 0;
+  for (var d = 0; d < 5; d++) {
+    if (modeOf(modes, d) === 'school') lost += sumMarks(marks && marks[d], PTS);
+  }
+  return Math.max(0, 100 - lost);
+}
+function dayLost(marks, d) { return sumMarks(marks && marks[d], PTS); }
+function holidayLost(hmarks, modes) {
+  var lost = 0;
+  for (var d = 0; d < 7; d++) {
+    if (modeOf(modes, d) === 'holiday') lost += sumMarks(hmarks && hmarks[d], HPTS);
+  }
+  return Math.min(HOL_TOTAL, lost);
+}
+function dayLostFor(st, d) {
+  var m = modeOf(st.modes, d);
+  if (m === 'school') return sumMarks(st.marks && st.marks[d], PTS);
+  if (m === 'holiday') return sumMarks(st.hmarks && st.hmarks[d], HPTS);
+  return 0;
+}
+function schoolGame(carry) { return Math.max(0, SCHOOL_GAME - (carry || 0)); }
+function calcPenalty(score) {
+  if (score >= 100) return { minutes: 0, noGame: false };
+  var m = PENALTY_BASE;
+  if (score <= 98) m += 98 - score;
+  return { minutes: m, noGame: score <= NO_GAME_AT };
+}
+function gameLeft(score) {
+  var p = calcPenalty(score);
+  return p.noGame ? 0 : Math.max(0, 2 * GAME_PER_DAY - p.minutes);
+}
+function fmtMin(m) {
+  var h = Math.floor(m / 60), r = m % 60;
+  if (h && r) return h + ' ชม. ' + r + ' นาที';
+  if (h) return h + ' ชม.';
+  return r + ' นาที';
+}
+function fmtDur(ms) {
+  var m = Math.max(0, Math.floor(ms / 60000));
+  var d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), r = m % 60;
+  var out = [];
+  if (d) out.push(d + ' วัน');
+  if (d || h) out.push(h + ' ชม.');
+  out.push(r + ' นาที');
+  return out.join(' ');
+}
+// แปลงข้อมูลเก่า (v1) หรือไฟล์สำรองให้เป็นรูปแบบ v2
+function normalizeState(s) {
+  if (!s || typeof s.weekKey !== 'string' || !s.marks || typeof s.marks !== 'object') return null;
+  var c = Number(s.carry && s.carry.minutes) || 0;
+  return {
+    v: 2,
+    weekKey: s.weekKey,
+    marks: s.marks,
+    hmarks: (s.hmarks && typeof s.hmarks === 'object') ? s.hmarks : {},
+    modes: (s.modes && typeof s.modes === 'object') ? s.modes : {},
+    carry: { minutes: Math.max(0, Math.min(HOL_TOTAL, c)) },
+    history: Array.isArray(s.history) ? s.history : []
+  };
+}
+// ขึ้นสัปดาห์ใหม่: เก็บผลลงประวัติ และเอาคะแนนวันหยุดที่หายไปตัดเกมวันไปเรียนของสัปดาห์ถัดไป
+function rolloverState(st, curKey) {
+  if (curKey <= st.weekKey) return null;
+  var s = calcScore(st.marks, st.modes), p = calcPenalty(s);
+  var hl = holidayLost(st.hmarks, st.modes);
+  var entry = { weekKey: st.weekKey, score: s, penalty: p.minutes, noGame: p.noGame, hScore: HOL_TOTAL - hl, hLost: hl };
+  var consecutive = weekKeyAt(nextReset(st.weekKey)) === curKey;
+  var h = st.history.slice();
+  h.unshift(entry);
+  return { v: 2, weekKey: curKey, marks: {}, hmarks: {}, modes: {}, carry: { minutes: consecutive ? hl : 0 }, history: h.slice(0, 8) };
+}
+/*LOGIC_END*/
+
+var KEY = 'routinePoints.v1';
+var DAY_NAMES = ['วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์', 'วันอาทิตย์'];
+var DAY_SHORT = ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'];
+var MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+// ?now=2026-10-30T21:59 เพื่อจำลองเวลา (เวลาไทย) สำหรับทดสอบ ไม่บันทึกข้อมูลจริง
+var offset = 0;
+(function () {
+  var q = new URLSearchParams(location.search).get('now');
+  if (q) {
+    var t = Date.parse(q.length === 16 ? q + ':00+07:00' : q);
+    if (!isNaN(t)) offset = t - Date.now();
+  }
+})();
+var testMode = offset !== 0;
+function now() { return Date.now() + offset; }
+
+function load() {
+  if (testMode) return null;
+  try { return normalizeState(JSON.parse(localStorage.getItem(KEY))); } catch (e) { return null; }
+}
+function save() {
+  if (testMode) return;
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+var state = load() || normalizeState({ weekKey: weekKeyAt(now()), marks: {} });
+var panel = 'school', selDay = 0, selHDay = 5;
+
+function initSelection() {
+  var today = dayIndexAt(now(), state.weekKey);
+  panel = today >= 5 ? 'holiday' : 'school';
+  selDay = Math.min(Math.max(today, 0), 4);
+  selHDay = today >= 5 ? Math.min(today, 6) : 5;
+}
+
+function rollover() {
+  var n = rolloverState(state, weekKeyAt(now()));
+  if (!n) return false;
+  state = n;
+  save();
+  return true;
+}
+
+var ICONS = {
+  trash: '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>',
+  shower: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+  meal: '<path d="M4 12h16a8 8 0 0 1-16 0z"/><path d="M9 8c0-1.5 1-1.5 1-3"/><path d="M14 8c0-1.5 1-1.5 1-3"/>',
+  ice: '<path d="M12 3l7 4v8l-7 4-7-4V7z"/><path d="M5 7l7 4 7-4"/><path d="M12 11v8"/>',
+  free: '<circle cx="12" cy="12" r="9"/><path d="M8 14a5 5 0 0 0 8 0"/><path d="M9 9.5h.01"/><path d="M15 9.5h.01"/>',
+  game: '<path d="M6 8h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.2 2L15 13H9l-1.8 2A3 3 0 0 1 2 13v-1a4 4 0 0 1 4-4z"/><path d="M7 10.5v3"/><path d="M5.5 12h3"/><path d="M16 11.5h.01"/><path d="M18 13.5h.01"/>',
+  brush: '<path d="M7.5 3.5c-2 0-3.5 1.6-3.5 4 0 3 1 4.2 1.5 7 .3 2 1 6 2 6s1-4 2.5-4 1.5 4 2.5 4 1.7-4 2-6c.5-2.8 1.5-4 1.5-7 0-2.4-1.5-4-3.5-4-1.5 0-2 .8-3 .8s-1.5-.8-3-.8z"/>',
+  moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.9 19.1l1.4-1.4"/><path d="M17.7 6.3l1.4-1.4"/>',
+  book: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M8 7h8"/>',
+  bag: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M4 13h16"/>'
+};
+
+function itemsFor(day) {
+  var fri = day === 4;
+  return [
+    { id: 'trash', t1: 'ก่อน', t2: '17:00', title: 'เอาขยะไปทิ้ง', kind: 'blue', icon: 'trash' },
+    { id: 'shower', t1: '16:30', t2: '17:00', title: 'อาบน้ำ', kind: 'blue', icon: 'shower' },
+    { id: 'meal', t1: '17:00', t2: '18:00', title: 'กินข้าว', kind: 'amber', icon: 'meal' },
+    { id: 'ice', t1: 'ช่วง', t2: 'กินข้าว', title: 'เติมน้ำแข็งในแก้ว', kind: 'amber', icon: 'ice' },
+    { id: 'free1', t1: '18:00', t2: '19:00', title: 'ทำอะไรก็ได้', kind: 'green', icon: 'free', tag: 'free' },
+    { id: 'game', t1: '19:00', t2: '20:00', title: 'เล่นเกม', kind: 'purple', icon: 'game', tag: 'opt' },
+    { id: 'free2', t1: '20:00', t2: '21:00', title: 'ทำอะไรก็ได้', kind: 'green', icon: 'free', tag: 'free' },
+    { id: 'brush', t1: 'ก่อนนอน', t2: '', title: 'แปรงฟัน', kind: 'blue', icon: 'brush' },
+    fri
+      ? { id: 'sleep', t1: 'ก่อน', t2: '22:00', title: 'เข้านอน', sub: 'วันศุกร์ นอนก่อน 22:00', kind: 'night', icon: 'moon' }
+      : { id: 'sleep', t1: '21:00', t2: '', title: 'เข้านอน', sub: 'หลับให้ได้ก่อน 21:30', kind: 'night', icon: 'moon' }
+  ];
+}
+
+function holidayItems() {
+  return [
+    { id: 'h_pack', t1: 'ก่อน', t2: '09:30', title: 'แพ็คเช้า', sub: 'ตื่นนอน · แปรงฟัน · กินข้าวเช้า · เติมน้ำแข็งในแก้ว', kind: 'amber', icon: 'sun' },
+    { id: 'g1', t1: '09:30', t2: '10:30', title: 'เล่นเกม', kind: 'purple', icon: 'game', tag: 'opt' },
+    { id: 'h_vocab', t1: '10:30', t2: '11:30', title: 'ฝึกฝนคำศัพท์', kind: 'blue', icon: 'book' },
+    { id: 'h_trash', t1: '11:30', t2: '12:00', title: 'เอาขยะไปทิ้ง', sub: 'แล้วทำอะไรก็ได้ (ไม่ใช้โทรศัพท์/คอม)', kind: 'blue', icon: 'trash' },
+    { id: 'h_lunch', t1: '12:00', t2: '13:00', title: 'กินข้าวเที่ยง', kind: 'amber', icon: 'meal' },
+    { id: 'f1', t1: '13:00', t2: '14:00', title: 'ทำอะไรก็ได้', kind: 'green', icon: 'free', tag: 'free' },
+    { id: 'g2', t1: '14:00', t2: '15:00', title: 'เล่นเกม', kind: 'purple', icon: 'game', tag: 'opt' },
+    { id: 'f2', t1: '15:00', t2: '16:30', title: 'ทำอะไรก็ได้', kind: 'green', icon: 'free', tag: 'free' },
+    { id: 'h_shower', t1: '16:30', t2: '17:00', title: 'อาบน้ำ', kind: 'blue', icon: 'shower' },
+    { id: 'h_dinner', t1: '17:00', t2: '18:00', title: 'กินข้าวเย็น', kind: 'amber', icon: 'meal' },
+    { id: 'h_ice', t1: 'ช่วง', t2: 'กินข้าว', title: 'เติมน้ำแข็งในแก้ว', kind: 'amber', icon: 'ice' },
+    { id: 'h_review', t1: '18:00', t2: '19:00', title: 'ทบทวนคำศัพท์', sub: 'จากตอนเช้า', kind: 'blue', icon: 'book' },
+    { id: 'g3', t1: '19:00', t2: '20:00', title: 'เล่นเกม', kind: 'purple', icon: 'game', tag: 'opt' },
+    { id: 'f3', t1: '20:00', t2: '21:00', title: 'ทำอะไรก็ได้', kind: 'green', icon: 'free', tag: 'free' },
+    { id: 'brush', t1: 'ก่อน', t2: '21:00', title: 'แปรงฟัน', kind: 'blue', icon: 'brush' },
+    { id: 'h_sleep', t1: '21:00', t2: '22:00', title: 'เข้านอน', sub: 'หลับให้ได้ก่อน 22:00', kind: 'night', icon: 'moon' }
+  ];
+}
+
+function thaiDate(key) {
+  var p = key.split('-');
+  return parseInt(p[2], 10) + ' ' + MONTHS[parseInt(p[1], 10) - 1];
+}
+function el(id) { return document.getElementById(id); }
+function curDay() { return panel === 'holiday' ? selHDay : selDay; }
+
+// วันนี้แก้ไขการหักคะแนน/โหมดได้ไหม
+function canEditDay(d) {
+  var key = state.weekKey, n = now();
+  var today = dayIndexAt(n, key);
+  if (d > today) return false;
+  if (modeOf(state.modes, d) === 'school') return n < scoringEnd(key);
+  return n < nextReset(key);
+}
+function canChangeMode(d) {
+  var key = state.weekKey, n = now();
+  return d < 5 ? n < scoringEnd(key) : n < nextReset(key);
+}
+
+function itemHtml(it, pts, done, canEdit, lockTxt) {
+  var act = '';
+  if (pts) {
+    if (canEdit) {
+      act = done
+        ? '<span class="took">หักแล้ว −' + pts + '</span><button type="button" class="undo" data-act="undo" data-id="' + it.id + '">ยกเลิก</button>'
+        : '<button type="button" class="deduct" data-act="deduct" data-id="' + it.id + '">หักคะแนน<small>−' + pts + '</small></button>';
+    } else if (done) {
+      act = '<span class="took">หักแล้ว −' + pts + '</span>';
+    } else {
+      act = '<span class="lock">' + lockTxt + '</span>';
+    }
+  }
+  var tag = it.tag === 'free' ? '<span class="tag free">ไม่ใช้โทรศัพท์/คอม</span>' : (it.tag === 'opt' ? '<span class="tag opt">optional</span>' : '');
+  var sub = it.sub ? '<span class="subtxt">' + it.sub + '</span>' : '';
+  return '<div class="row"><div class="tcol"><span class="t1">' + it.t1 + '</span>' + (it.t2 ? '<span class="t2">' + it.t2 + '</span>' : '') + '</div>' +
+    '<div class="card item' + (it.kind === 'night' ? ' night' : '') + (done ? ' done' : '') + '">' +
+    '<div class="ic ' + it.kind + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS[it.icon] + '</svg></div>' +
+    '<div class="txt"><span class="name">' + it.title + '</span>' + sub + tag + '</div>' +
+    (act ? '<div class="act">' + act + '</div>' : '') +
+    '</div></div>';
+}
+
+function render() {
+  var key = state.weekKey, n = now();
+  var end = scoringEnd(key), reset = nextReset(key);
+  var running = n < end;
+  var today = dayIndexAt(n, key);
+  var isH = panel === 'holiday';
+
+  var sScore = calcScore(state.marks, state.modes), pen = calcPenalty(sScore);
+  var hLost = holidayLost(state.hmarks, state.modes), hScore = HOL_TOTAL - hLost;
+  var carry = state.carry.minutes;
+
+  el('segSchool').setAttribute('aria-pressed', String(!isH));
+  el('segHoliday').setAttribute('aria-pressed', String(isH));
+
+  // การ์ดคะแนน
+  var score = isH ? hScore : sScore, total = isH ? HOL_TOTAL : 100;
+  el('scoreNum').textContent = score;
+  el('scoreOf').textContent = '/' + total;
+  var fill = el('barFill'), pct = score / total;
+  fill.style.width = (pct * 100) + '%';
+  fill.style.background = pct >= 0.75 ? 'var(--good)' : (pct >= 0.4 ? 'var(--warn)' : 'var(--danger)');
+  var chip = el('statusChip'), cd = el('countdown');
+  if (!isH) {
+    chip.textContent = running ? 'กำลังนับคะแนน' : 'นับคะแนนจบแล้ว';
+    chip.className = 'chip ' + (running ? 'run' : 'end');
+    cd.textContent = running
+      ? 'นับคะแนนจบ ศุกร์ 22:00 · อีก ' + fmtDur(end - n)
+      : 'รีเซ็ตคะแนนวันจันทร์ 00:00 · อีก ' + fmtDur(reset - n);
+  } else {
+    var started = false;
+    for (var q = 0; q <= Math.min(today, 6); q++) { if (modeOf(state.modes, q) === 'holiday') started = true; }
+    chip.textContent = started ? 'กำลังนับคะแนน' : 'รอวันหยุด';
+    chip.className = 'chip ' + (started ? 'run' : 'wait');
+    cd.textContent = started
+      ? 'นับคะแนนวันหยุดจบ จันทร์ 00:00 · อีก ' + fmtDur(reset - n)
+      : 'วันหยุดเริ่มเสาร์ 00:00 · อีก ' + fmtDur(weekStart(key) + 5 * DAY - n);
+  }
+
+  // สรุป
+  var penTxt = pen.minutes === 0 ? 'ไม่มีโทษ' : 'โดนหัก ' + fmtMin(pen.minutes);
+  var gameTxt = pen.noGame
+    ? 'ไม่มีเวลาเล่นเกมวันหยุด'
+    : (pen.minutes === 0 ? 'เต็ม ' + fmtMin(2 * GAME_PER_DAY) : fmtMin(gameLeft(sScore)) + ' (จากรวม ' + fmtMin(2 * GAME_PER_DAY) + ')');
+  var sum = '';
+  if (!isH) {
+    var sg = carry > 0 ? fmtMin(schoolGame(carry)) + ' ต่อวัน (ตัด ' + carry + ' นาที จากคะแนนวันหยุดสัปดาห์ก่อน)' : 'เต็ม ' + fmtMin(SCHOOL_GAME) + ' ต่อวัน';
+    sum = '<h2>' + (running ? 'ถ้านับจบตอนนี้' : 'ผลสัปดาห์นี้ (สรุปแล้ว)') + '</h2>' +
+      '<div class="sumrow"><span>บทลงโทษ</span><strong class="' + (pen.minutes === 0 ? 'ok' : 'bad') + '">' + penTxt + '</strong></div>' +
+      '<div class="sumrow"><span>เวลาเกม เสาร์–อาทิตย์</span><strong class="' + (pen.noGame ? 'bad' : '') + '">' + gameTxt + '</strong></div>' +
+      '<div class="sumrow"><span>เวลาเกมวันไปเรียน (สัปดาห์นี้)</span><strong class="' + (carry > 0 ? 'bad' : 'ok') + '">' + sg + '</strong></div>';
+  } else {
+    var nextG = hLost > 0 ? fmtMin(schoolGame(hLost)) + ' ต่อวัน (ตัด ' + hLost + ' นาที)' : 'เต็ม ' + fmtMin(SCHOOL_GAME) + ' ต่อวัน';
+    sum = '<h2>ถ้านับจบตอนนี้</h2>' +
+      '<div class="sumrow"><span>เวลาเกมวันไปเรียนสัปดาห์หน้า</span><strong class="' + (hLost > 0 ? 'bad' : 'ok') + '">' + nextG + '</strong></div>' +
+      '<div class="sumrow"><span>เวลาเกมวันหยุด' + (running ? ' (ยังไม่สรุป)' : '') + '</span><strong class="' + (pen.noGame ? 'bad' : '') + '">' + gameTxt + '</strong></div>';
+  }
+  el('summary').innerHTML = sum;
+
+  // แท็บวัน
+  var days = isH ? [5, 6] : [0, 1, 2, 3, 4];
+  var cur = curDay();
+  var tabs = '';
+  days.forEach(function (d) {
+    var lost = dayLostFor(state, d), md = modeOf(state.modes, d);
+    var small;
+    if (lost > 0) small = '<small class="loss">−' + lost + '</small>';
+    else if (md === 'trip') small = '<small>ไปเที่ยว</small>';
+    else if (md === 'holiday' && d < 5) small = '<small>หยุด</small>';
+    else if (d === today) small = '<small class="today">วันนี้</small>';
+    else small = '<small>·</small>';
+    tabs += '<button type="button" class="tab" data-act="tab" data-day="' + d + '" aria-pressed="' + (d === cur) + '" aria-label="' + DAY_NAMES[d] + (lost > 0 ? ' หักไป ' + lost + ' คะแนน' : '') + '">' + DAY_SHORT[d] + small + '</button>';
+  });
+  var tabsEl = el('tabs');
+  tabsEl.style.gridTemplateColumns = 'repeat(' + days.length + ',1fr)';
+  tabsEl.innerHTML = tabs;
+  el('dayTitle').textContent = DAY_NAMES[cur] + (cur === today ? ' · วันนี้' : '');
+
+  // โหมดของวัน (หยุดชั่วคราว / ไปเที่ยว)
+  var ov = state.modes[cur] || '', canMode = canChangeMode(cur);
+  var dis = canMode ? '' : ' disabled';
+  var txt, btns;
+  if (ov === 'trip') {
+    txt = 'ไปเที่ยว · ยกเลิกตารางวันนี้แล้ว ไม่หักคะแนน';
+    btns = '<button type="button" class="btn2" data-act="mode" data-mode="normal"' + dis + '>กลับมาทำปกติ</button>';
+  } else if (ov === 'holiday') {
+    txt = 'วันหยุดชั่วคราว · ใช้ตารางวันหยุด และหักจากคะแนนวันหยุด';
+    btns = '<button type="button" class="btn2" data-act="mode" data-mode="trip"' + dis + '>ไปเที่ยว</button>' +
+      '<button type="button" class="btn2" data-act="mode" data-mode="normal"' + dis + '>กลับมาทำปกติ</button>';
+  } else {
+    txt = 'ตั้งค่า' + DAY_NAMES[cur];
+    btns = (cur < 5 ? '<button type="button" class="btn2" data-act="mode" data-mode="holiday"' + dis + '>หยุดชั่วคราว 1 วัน</button>' : '') +
+      '<button type="button" class="btn2" data-act="mode" data-mode="trip"' + dis + '>ไปเที่ยว</button>';
+  }
+  el('modeBox').innerHTML = '<p class="modeTxt">' + txt + '</p><div class="modeBtns">' + btns + '</div>';
+
+  // รายการ
+  var eff = modeOf(state.modes, cur);
+  if (eff === 'trip') {
+    el('list').innerHTML = '<div class="card trip"><div class="ic amber"><svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.bag + '</svg></div>' +
+      '<div class="txt"><span class="name">ตารางวันนี้ถูกยกเลิก</span><span class="subtxt">เพราะไปเที่ยว · ไม่มีการหักคะแนน</span></div></div>';
+  } else {
+    var isSchool = eff === 'school';
+    var items = isSchool ? itemsFor(cur) : holidayItems();
+    var map = isSchool ? PTS : HPTS;
+    var marks = (isSchool ? state.marks[cur] : state.hmarks[cur]) || {};
+    var canEdit = canEditDay(cur);
+    var lockTxt = cur > today ? 'ยังไม่ถึงวัน' : 'ปิดรับแล้ว';
+    el('list').innerHTML = items.map(function (it) {
+      return itemHtml(it, map[it.id], !!marks[it.id], canEdit, lockTxt);
+    }).join('');
+  }
+
+  // ประวัติ
+  el('hist').innerHTML = state.history.length
+    ? state.history.map(function (h) {
+        var res = h.penalty === 0 ? 'ไม่มีโทษ' : (h.noGame ? 'ไม่มีเกม' : 'หัก ' + fmtMin(h.penalty));
+        var hol = typeof h.hScore === 'number' ? '<small>วันหยุด ' + h.hScore + '/' + HOL_TOTAL + (h.hLost > 0 ? ' · ตัดเกมวันไปเรียน ' + h.hLost + ' นาที' : '') + '</small>' : '';
+        return '<li><span>สัปดาห์ ' + thaiDate(h.weekKey) + '</span><span class="r"><strong>' + h.score + '</strong> คะแนน · ' + res + hol + '</span></li>';
+      }).join('')
+    : '<li><span>ยังไม่มีประวัติ</span></li>';
+
+  el('testBanner').hidden = !testMode;
+}
+
+function setMark(id, val) {
+  var d = curDay();
+  if (!canEditDay(d)) return;
+  var eff = modeOf(state.modes, d);
+  if (eff === 'trip') return;
+  var map = eff === 'school' ? PTS : HPTS;
+  if (!map[id]) return;
+  var store = eff === 'school' ? state.marks : state.hmarks;
+  if (!store[d]) store[d] = {};
+  store[d][id] = val;
+  save();
+  render();
+}
+
+function setMode(m) {
+  var d = curDay();
+  if (!canChangeMode(d)) return;
+  if (m === 'holiday' && d >= 5) return;
+  if (dayLostFor(state, d) > 0 && !confirm('วันนี้มีการหักคะแนนไว้ จะไม่ถูกนับระหว่างเปลี่ยนโหมด (กลับมาทำปกติแล้วจะนับใหม่) ทำต่อไหม?')) return;
+  if (m === 'normal') delete state.modes[d];
+  else state.modes[d] = m;
+  save();
+  render();
+}
+
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-act]');
+  if (!b || b.disabled) return;
+  var act = b.getAttribute('data-act');
+  if (act === 'panel') { panel = b.getAttribute('data-panel'); render(); }
+  else if (act === 'tab') {
+    var d = parseInt(b.getAttribute('data-day'), 10);
+    if (panel === 'holiday') selHDay = d; else selDay = d;
+    render();
+  }
+  else if (act === 'deduct') setMark(b.getAttribute('data-id'), true);
+  else if (act === 'undo') setMark(b.getAttribute('data-id'), false);
+  else if (act === 'mode') setMode(b.getAttribute('data-mode'));
+});
+
+el('btnExport').addEventListener('click', function () {
+  var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'routine-points-' + state.weekKey + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+});
+
+el('fileImport').addEventListener('change', function (e) {
+  var f = e.target.files && e.target.files[0];
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function () {
+    try {
+      var s = normalizeState(JSON.parse(r.result));
+      if (!s) throw new Error('bad');
+      if (!confirm('กู้คืนข้อมูลจากไฟล์นี้? ข้อมูลปัจจุบันในเครื่องจะถูกแทนที่')) return;
+      state = s;
+      save();
+      rollover();
+      initSelection();
+      render();
+    } catch (err) {
+      alert('ไฟล์นี้ใช้กู้คืนไม่ได้');
+    }
+    e.target.value = '';
+  };
+  r.readAsText(f);
+});
+
+function tick() {
+  if (rollover()) initSelection();
+  render();
+}
+rollover();
+initSelection();
+render();
+setInterval(tick, 30000);
+document.addEventListener('visibilitychange', function () { if (!document.hidden) tick(); });
+</script>
+</body>
+</html>
